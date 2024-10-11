@@ -41,10 +41,12 @@ class WatchHealthManager: ObservableObject {
         let typesToRead: Set = [heartRateType, oxygenSaturationType, heartRateVariabilityType]
         
         healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { (success, error) in
-            if !success {
-                print("Authorization failed: \(String(describing: error))")
-            } else {
-                print("Authorization succeeded!")
+            DispatchQueue.main.async {
+                if !success {
+                    print("Authorization failed: \(String(describing: error))")
+                } else {
+                    print("Authorization succeeded!")
+                }
             }
         }
     }
