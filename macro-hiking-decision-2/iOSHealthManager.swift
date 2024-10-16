@@ -6,24 +6,111 @@
 //
 
 import HealthKit
-import SwiftUI
+import Foundation
+import WatchConnectivity
 
-class iOSHealthManager: ObservableObject {
-    @Published var healthData: [HealthDataModel] = []
+class iOSHealthManager: NSObject, ObservableObject, WCSessionDelegate {
+    @Published var isMonitoring: Bool = false
+    @Published var shouldNavigateToMonitoringView: Bool = false
     
-    // Fungsi untuk menambahkan data kesehatan
-    func addHealthData(heartRate: Double, oxygenSaturation: Double, heartRateVariability: Double, altitude: Double) {
-        let newData = HealthDataModel(heartRate: heartRate, oxygenSaturation: oxygenSaturation, heartRateVariability: heartRateVariability, altitude: altitude, timestamp: Date())
-        healthData.append(newData)
-        print("Data added: \(newData)")
+    @Published var latestHeartRate: Double?
+    @Published var latestHeartRateTime: Date?
+    @Published var latestOxygenSaturation: Double?
+    @Published var latestOxygenSaturationTime: Date?
+    @Published var latestHeartRateVariability: Double?
+    @Published var latestHeartRateVariabilityTime: Date?
+    @Published var latestAltitude: Double?
+    @Published var latestAltitudeTime: Date?
+    
+    private var session: WCSession
+
+    override init() {
+        session = WCSession.default
+        super.init()
+        session.delegate = self
+        if WCSession.isSupported() {
+            session.activate() // Activate session
+        }
     }
     
-    // Fungsi untuk mengekspor data ke CSV
-    func exportToCSV() -> URL? {
-        if healthData.isEmpty {
-            print("No health data to export.")
-            return nil
+    // WCSessionDelegate methods
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        if let startMonitoring = message["isMonitoring"] as? Bool {
+            DispatchQueue.main.async {
+                if self.isMonitoring != startMonitoring {
+                    if startMonitoring {
+                        self.startMonitoring()
+                        self.shouldNavigateToMonitoringView = true
+                    } else {
+                        self.stopMonitoring()
+                        self.shouldNavigateToMonitoringView = false
+                    }
+                    
+                    // Send acknowledgment back to Watch
+                    replyHandler(["received": true])
+                }
+            }
+            print("Masuk IF sini!")
+        } else {
+            print("Unknown message received: \(message)")
+            replyHandler(["received": false])
         }
-        return CSVExporter.exportHealthDataToCSV(data: healthData)
+    }
+
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        if let error = error {
+            print("WCSession activation failed: \(error.localizedDescription)")
+        } else {
+            print("WCSession activated successfully.")
+        }
+    }
+
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        if session.isReachable {
+            print("Watch is reachable.")
+        } else {
+            print("Watch is not reachable.")
+        }
+    }
+    
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        // Handle if necessary
+    }
+
+    func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+    
+    // Send monitoring status to Watch, only if the states are different
+    func sendMonitoringStatusToWatch(isMonitoring: Bool) {
+        if session.isReachable && self.isMonitoring != isMonitoring {
+            let message = ["isMonitoring": isMonitoring]
+            session.sendMessage(message, replyHandler: nil) { error in
+                print("Error sending message: \(error.localizedDescription)")
+            }
+        } else {
+            print("Watch is not reachable or states are already the same.")
+        }
+    }
+    
+    // Start monitoring
+    func startMonitoring() {
+        if !isMonitoring {
+            isMonitoring = true
+            sendMonitoringStatusToWatch(isMonitoring: true)
+            print("Send monitoring start status to Watch.")
+            // Start Health monitoring on iOS...
+        }
+    }
+
+    // Stop monitoring
+    func stopMonitoring() {
+        if isMonitoring {
+            isMonitoring = false
+            sendMonitoringStatusToWatch(isMonitoring: false)
+            print("Send monitoring stop status to Watch.")
+            // Stop Health monitoring on iOS...
+        }
     }
 }
+

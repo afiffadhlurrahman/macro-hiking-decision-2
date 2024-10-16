@@ -96,67 +96,52 @@ struct WatchMonitoringView: View {
                         .padding()
 
                     ScrollView {
-                        ZStack {
-                            if let heartRate = healthManager.latestHeartRate,
-                                let heartRateTime = healthManager.latestHeartRateTime
-                            {
-                                Text("HR: \(heartRate, specifier: "%.0f") bpm")
-                                    .foregroundStyle(Color.red)
-                                Text("Time_HR: \(heartRateTime, style: .time)")
-
-                            } else {
-                                Text("No HR data.")
-                            }
-                            
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(width: 160, height: 80)
-                                .foregroundStyle(Color.white.opacity(0.2))
+                        if let heartRate = healthManager.latestHeartRate,
+                           let heartRateTime = healthManager.latestHeartRateTime {
+                            HealthDataView(
+                                title: "HR",
+                                value: String(format: "%.0f bpm", heartRate),
+                                time: heartRateTime.formatted(.dateTime.hour().minute().second()),
+                                color: .red
+                            )
+                        } else {
+                            Text("No HR data.")
                         }
-
-
-                        ZStack{
-                            if let oxygenSaturation = healthManager.latestOxygenSaturation,
-                                let oxygenSaturationTime = healthManager.latestOxygenSaturationTime
-                            {
-                                Text("SPO2: \(oxygenSaturation * 100, specifier: "%.0f")%")
-                                Text("Time_SPO2: \(oxygenSaturationTime, style: .time)")
-                            } else {
-                                Text("No SPO2 data.")
-                            }
-                            
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(width: 160, height: 80)
-                                .foregroundStyle(Color.white.opacity(0.2))
+                        
+                        if let oxygenSaturation = healthManager.latestOxygenSaturation,
+                           let oxygenSaturationTime = healthManager.latestOxygenSaturationTime {
+                            HealthDataView(
+                                title: "SPO2",
+                                value: String(format: "%.0f%%", oxygenSaturation * 100),
+                                time: oxygenSaturationTime.formatted(.dateTime.hour().minute().second()),
+                                color: .blue
+                            )
+                        } else {
+                            Text("No SPO2 data.")
                         }
-
-                        ZStack{
-                            if let hrv = healthManager.latestHeartRateVariability,
-                                let hrvTime = healthManager.latestHeartRateVariabilityTime
-                            {
-                                Text("HRV: \(hrv, specifier: "%.2f") ms")
-                                Text("Time_HRV: \(hrvTime, style: .time)")
-                            } else {
-                                Text("No HRV data.")
-                            }
-                            
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(width: 160, height: 80)
-                                .foregroundStyle(Color.white.opacity(0.2))
+                        
+                        if let hrv = healthManager.latestHeartRateVariability,
+                           let hrvTime = healthManager.latestHeartRateVariabilityTime {
+                            HealthDataView(
+                                title: "HRV",
+                                value: String(format: "%.2f ms", hrv),
+                                time: hrvTime.formatted(.dateTime.hour().minute().second()),
+                                color: .green
+                            )
+                        } else {
+                            Text("No HRV data.")
                         }
-
-                        ZStack{
-                            if let altitude = healthManager.latestAltitude,
-                                let altitudeTime = healthManager.latestAltitudeTime
-                            {
-                                Text("Alt: \(altitude, specifier: "%.2f") meters")
-                                Text("Time: \(altitudeTime, style: .time)")
-                            } else {
-                                Text("No Alt data.")
-                            }
-                            
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(width: 160, height: 80)
-                                .foregroundStyle(Color.white.opacity(0.2))
+                        
+                        if let altitude = healthManager.latestAltitude,
+                           let altitudeTime = healthManager.latestAltitudeTime {
+                            HealthDataView(
+                                title: "Alt",
+                                value: String(format: "%.2f meters", altitude),
+                                time: altitudeTime.formatted(.dateTime.hour().minute().second()),
+                                color: .orange
+                            )
+                        } else {
+                            Text("No Alt data.")
                         }
                     }
                 }
@@ -193,8 +178,25 @@ struct WatchMonitoringView: View {
     }
 }
 
-struct DataComponentView {
+struct HealthDataView: View {
+    var title: String
+    var value: String
+    var time: String
+    var color: Color
 
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .frame(width: 160, height: 80)
+                .foregroundStyle(color.opacity(0.2))
+            
+            VStack {
+                Text("\(title): \(value)")
+                    .foregroundStyle(color)
+                Text("Time: \(time)")
+            }
+        }
+    }
 }
 
 #Preview {

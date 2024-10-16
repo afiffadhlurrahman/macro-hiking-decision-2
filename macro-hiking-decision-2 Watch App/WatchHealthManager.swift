@@ -8,13 +8,14 @@
 import HealthKit
 import CoreMotion
 import Foundation
+import WatchConnectivity
 
-class WatchHealthManager: ObservableObject {
+class WatchHealthManager: NSObject, ObservableObject, WCSessionDelegate {
     let healthStore = HKHealthStore()
     let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)!
     let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
     let heartRateVariabilityType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
-    
+        
     @Published var latestHeartRate: Double? // Untuk menyimpan heart rate terbaru
     @Published var latestHeartRateTime: Date? // Untuk menyimpan waktu heart rate terdeteksi
     @Published var latestOxygenSaturation: Double? // Untuk menyimpan oxygen saturation terbaru
@@ -31,9 +32,62 @@ class WatchHealthManager: ObservableObject {
     
     var altimeter = CMAltimeter()
     
-    init() {
-        requestAuthorization()
+    @Published var isMonitoring: Bool = false
+    private var session: WCSession
+    
+    override init() {
+        session = WCSession.default
+        super.init()
+        session.delegate = self
+        if WCSession.isSupported() {
+            session.activate() // Activate session
+        }
     }
+        
+    // Send the monitoring status to iPhone
+    func sendMonitoringStatusToiPhone(isMonitoring: Bool) {
+        if session.isReachable {
+            let message = ["isMonitoring": isMonitoring]
+            session.sendMessage(message, replyHandler: { response in
+                print("iPhone acknowledged the message: \(response)")
+            }, errorHandler: { error in
+                print("Error sending message to iPhone: \(error.localizedDescription)")
+            })
+        } else {
+            print("iPhone is not reachable.")
+        }
+    }
+
+    // WCSessionDelegate methods
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        if let startMonitoring = message["isMonitoring"] as? Bool {
+            DispatchQueue.main.async {
+                if self.isMonitoring != startMonitoring {
+                    if startMonitoring {
+                        self.startMonitoring()
+                    } else {
+                        self.stopMonitoring()
+                    }
+                }
+            }
+        }
+    }
+
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        if let error = error {
+            print("WCSession activation failed: \(error.localizedDescription)")
+        } else {
+            print("WCSession activated successfully.")
+        }
+    }
+
+//    func sessionReachabilityDidChange(_ session: WCSession) {
+//        if session.isReachable {
+//            print("iOS is reachable.")
+//        } else {
+//            print("iOS is not reachable.")
+//        }
+//    }
     
     // Meminta izin akses ke HealthKit
     func requestAuthorization() {
@@ -50,45 +104,54 @@ class WatchHealthManager: ObservableObject {
             }
         }
     }
-    
+
     // Memulai monitoring heart rate dan oxygen saturation
     func startMonitoring() {
-        // Mengambil heart rate setiap 60 detik
-        heartRateTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
-            self.fetchLatestHeartRateSample()
+        if !isMonitoring{
+            isMonitoring = true
+            sendMonitoringStatusToiPhone(isMonitoring: true)
+            print("Monitoring started on Watch")
+            
+            // Mengambil heart rate setiap 60 detik
+            heartRateTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+                self.fetchLatestHeartRateSample()
+            }
+            
+            // Mengambil oxygen saturation setiap 60 detik
+            oxygenSaturationTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+                self.fetchLatestOxygenSaturationSample()
+            }
+            
+            heartRateVariabilityTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+                self.fetchLatestHeartRateVariabilitySample()
+            }
+            
+            altitudeTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+                self.detectAltitudeUsingCoreMotion()
+            }
+
         }
-        
-        // Mengambil oxygen saturation setiap 60 detik
-        oxygenSaturationTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
-            self.fetchLatestOxygenSaturationSample()
-        }
-        
-        heartRateVariabilityTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
-            self.fetchLatestHeartRateVariabilitySample()
-        }
-        
-        altitudeTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
-            self.detectAltitudeUsingCoreMotion()
-        }
-        
-        print("Monitoring started.")
     }
     
     // Menghentikan monitoring
     func stopMonitoring() {
-        heartRateTimer?.invalidate()
-        oxygenSaturationTimer?.invalidate()
-        heartRateVariabilityTimer?.invalidate()
-        altitudeTimer?.invalidate()
-        
-        heartRateTimer = nil
-        oxygenSaturationTimer = nil
-        heartRateVariabilityTimer = nil
-        altitudeTimer = nil
-        
-        altimeter.stopRelativeAltitudeUpdates()
-        
-        print("Monitoring stopped.")
+        if isMonitoring {
+            isMonitoring = false
+            sendMonitoringStatusToiPhone(isMonitoring: true)
+            print("Monitoring stopped on Watch")
+            
+            heartRateTimer?.invalidate()
+            oxygenSaturationTimer?.invalidate()
+            heartRateVariabilityTimer?.invalidate()
+            altitudeTimer?.invalidate()
+            
+            heartRateTimer = nil
+            oxygenSaturationTimer = nil
+            heartRateVariabilityTimer = nil
+            altitudeTimer = nil
+            
+            altimeter.stopRelativeAltitudeUpdates()
+        }
     }
     
     // Mengambil satu data heart rate terbaru

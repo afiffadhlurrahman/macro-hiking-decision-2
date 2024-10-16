@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		EF1117742CB38FA500305E19 /* macro-hiking-decision-2 Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = EF1117732CB38FA500305E19 /* macro-hiking-decision-2 Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EF44DFD32CBE195B00195ABA /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF44DFD22CBE195B00195ABA /* WatchConnectivity.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,11 +38,25 @@
 /* Begin PBXFileReference section */
 		EF1117632CB38FA300305E19 /* macro-hiking-decision-2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "macro-hiking-decision-2.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF1117732CB38FA500305E19 /* macro-hiking-decision-2 Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "macro-hiking-decision-2 Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF44DFD22CBE195B00195ABA /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EF44DFD52CBFABDC00195ABA /* Exceptions for "macro-hiking-decision-2" folder in "macro-hiking-decision-2" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EF1117622CB38FA300305E19 /* macro-hiking-decision-2 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		EF1117652CB38FA300305E19 /* macro-hiking-decision-2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EF44DFD52CBFABDC00195ABA /* Exceptions for "macro-hiking-decision-2" folder in "macro-hiking-decision-2" target */,
+			);
 			path = "macro-hiking-decision-2";
 			sourceTree = "<group>";
 		};
@@ -57,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EF44DFD32CBE195B00195ABA /* WatchConnectivity.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +91,7 @@
 			children = (
 				EF1117652CB38FA300305E19 /* macro-hiking-decision-2 */,
 				EF1117772CB38FA500305E19 /* macro-hiking-decision-2 Watch App */,
+				EF44DFD12CBE195A00195ABA /* Frameworks */,
 				EF1117642CB38FA300305E19 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -86,6 +103,14 @@
 				EF1117732CB38FA500305E19 /* macro-hiking-decision-2 Watch App.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		EF44DFD12CBE195A00195ABA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EF44DFD22CBE195B00195ABA /* WatchConnectivity.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -415,6 +440,7 @@
 				DEVELOPMENT_TEAM = 9HR48NXTG8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macro-hiking-decision-2/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "macro-hiking-decision-2";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "App membutuhkan akses ke data kesehatan untuk menyimpan Heart Rate dan Oxygen Saturation, Flight Climbed.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App membutuhkan akses ke data kesehatan untuk menyimpan Heart Rate dan Oxygen Saturation, Flight Climbed.";
@@ -455,6 +481,7 @@
 				DEVELOPMENT_TEAM = 9HR48NXTG8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macro-hiking-decision-2/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "macro-hiking-decision-2";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "App membutuhkan akses ke data kesehatan untuk menyimpan Heart Rate dan Oxygen Saturation, Flight Climbed.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App membutuhkan akses ke data kesehatan untuk menyimpan Heart Rate dan Oxygen Saturation, Flight Climbed.";
